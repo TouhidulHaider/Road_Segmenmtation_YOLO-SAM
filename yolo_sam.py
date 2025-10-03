@@ -4,14 +4,14 @@ import cv2, numpy as np
 import matplotlib.pyplot as plt
 
 # Load your trained model
-yolo_model = YOLO(r"D:/cityscape/best.pt")
+yolo_model = YOLO(r"D:\University Project\LaneDetectionPlayground\Road_Segmenmtation_YOLO-SAM\best.pt")
 
 # Load SAM model
 sam = sam_model_registry["vit_h"](checkpoint="sam_vit_h_4b8939.pth")
 predictor = SamPredictor(sam)
 
 
-image = cv2.imread(r"D:/cityscape/20.jpg")
+image = cv2.imread(r"D:\University Project\LaneDetectionPlayground\Road_Segmenmtation_YOLO-SAM\road_lane.jpg")
 img = image
 results = yolo_model.predict(image, conf=0.25)
 boxes = results[0].boxes

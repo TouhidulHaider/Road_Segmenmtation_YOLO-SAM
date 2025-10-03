@@ -1,0 +1,66 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+.python-version
+
+# Environment variables
+.env
+.env.*
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test/Type caches
+.pytest_cache/
+.mypy_cache/
+.pyre/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+logs/
+*.log
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ML/DS artifacts
+runs/
+outputs/
+.cache/
+
+# Large model files (ignore new ones; already tracked files remain tracked)
+*.pt
+*.pth
+*.onnx
+*.pb
+*.tflite
+*.engine
+*.plan
+
+# Data dumps
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.zip
+*.tar
+*.tar.gz
