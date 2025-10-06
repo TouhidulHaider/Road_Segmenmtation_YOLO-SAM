@@ -5,12 +5,14 @@ from ultralytics import YOLO
 from segment_anything import sam_model_registry, SamPredictor
 from typing import List, Tuple, Optional, Dict
 
-from abir_utilities import build_point_image, extract_lane_holes_and_centroids, extract_middle_lane_masks, extract_outer_lanes, extract_outer_lanes2, extract_outer_lanes3, fill_road_polygon, get_road_mask_with_yolo_sam, overlay_edge_lanes, overlay_middle_lanes, set_border
+from abir_utilities import build_point_image, extract_lane_holes_and_centroids, extract_middle_lane_masks, extract_middle_lane_masks_dbscan_scaled, extract_middle_lane_masks_dbscan_scaled_with_merge, extract_middle_lane_masks_hierarchical, extract_middle_lane_masks_optics, extract_outer_lanes, extract_outer_lanes2, extract_outer_lanes3, fill_road_polygon, get_road_mask_with_yolo_sam, overlay_edge_lanes, overlay_middle_lanes, set_border
 
 # -----------------------
 # Config
 # -----------------------
-IMAGE_PATH = r"D:\University Project\LaneDetectionPlayground\Road_Segmenmtation_YOLO-SAM\road_lane.jpg"
+IMAGE_PATH0 = r"D:\University Project\LaneDetectionPlayground\Road_Segmenmtation_YOLO-SAM"
+IMAGE_NAME = "road_lane5.jpg"
+IMAGE_PATH = f"{IMAGE_PATH0}\\{IMAGE_NAME}"
 output_path = r"D:\University Project\LaneDetectionPlayground\Road_Segmenmtation_YOLO-SAM\output"
 
 
@@ -22,12 +24,12 @@ def main():
     image = cv2.imread(IMAGE_PATH)
     if image is None:
         raise FileNotFoundError(f"Could not read image at {IMAGE_PATH}")
+    image = cv2.resize(image, (1280, 720))
     original = image.copy()
     h, w = image.shape[:2]
-
     # Step 0: Road segmentation via YOLO + SAM
     # Try to load saved road mask first, otherwise generate and save it
-    mask_save_path = f'{output_path}/road_mask.npy'
+    mask_save_path = f'{output_path}/road_mask_[{IMAGE_NAME}].npy'
     try:
         road_mask00 = np.load(mask_save_path)
         print(f"Loaded road mask from {mask_save_path}")
@@ -35,11 +37,16 @@ def main():
         road_mask00 = get_road_mask_with_yolo_sam(image)  # 0/1
         np.save(mask_save_path, road_mask00)
         print(f"Generated and saved road mask to {mask_save_path}")
+
+    # road_mask00 = get_road_mask_with_yolo_sam(image)  # 0/1
+    # np.save(mask_save_path, road_mask00)
+    # print(f"Generated and saved road mask to {mask_save_path}")
+    
     road_mask01 = set_border(road_mask00)
     # print("road mask",road_mask00)
 
     # Outer boundary lanes from road mask edges (left/right)
-    left_lane_mask, right_lane_mask = extract_outer_lanes3(road_mask00) # no. 3 is best so far
+    left_lane_mask, right_lane_mask = extract_outer_lanes3(road_mask00, thickness=5) # no. 3 is best so far
     overlay_lanes = overlay_edge_lanes(original, left_lane_mask, right_lane_mask)
 
     # print("Left lane points:", left_lane_mask)
@@ -53,7 +60,8 @@ def main():
 
     # Step 3: Sparse point image (from centroids) for optional debug
     point_img = build_point_image(centroids, (h, w))
-    middle_lanes = extract_middle_lane_masks(centroids, overlay_lanes.shape[:2])
+    middle_lanes = extract_middle_lane_masks_dbscan_scaled_with_merge(
+        centroids, overlay_lanes.shape[:2], thickness=5)
     overlay_lanes = overlay_middle_lanes(overlay_lanes, middle_lanes)
 
     # Create debug visuals
